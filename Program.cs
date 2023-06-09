@@ -4,6 +4,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Discord.WebSocket;
 using Discord.Interactions;
 using Discord;
+using MongoDB.Driver;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
 
 namespace LevelSystemDiscordBot
 {
@@ -17,7 +20,7 @@ namespace LevelSystemDiscordBot
                 .ConfigureServices((_, services) => services
                 .AddSingleton(new DiscordSocketClient(new DiscordSocketConfig()
                 {
-                    GatewayIntents =    GatewayIntents.AllUnprivileged,
+                    GatewayIntents =    GatewayIntents.All,
                     AlwaysDownloadUsers = true,
                 }))
                 .AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()))
@@ -45,14 +48,7 @@ namespace LevelSystemDiscordBot
                 await interactions.RegisterCommandsToGuildAsync(1113079064228536372);
             };
 
-            client.MessageReceived += async (SocketMessage message) =>
-            {
-                // bot & dm messages are ignored
-                if(message.Author.IsBot || message.Channel.ToString().First<char>() == '@') { return; }
-
-
-                message.Channel.SendMessageAsync("MESSAGE SENT");
-            };
+            client.MessageReceived += LevelSystem.MessageReceived;
 
             await client.LoginAsync(TokenType.Bot, "MTExMzkyNzU1NjY1MjA4MTIyMg.GtE3ZF.f67-pnn6ZFBMKI5nKFaDPU6SQ69vPRxCcBe9bg");
             await client.StartAsync();
