@@ -22,15 +22,24 @@ namespace LevelSystemDiscordBot.Modules
         [SlashCommand("level", "Displays the user's level.")]
         public async Task HandleLevel(SocketUser user = null)
         {
-            if(user == null) { user = Context.User; }
-
-            if(user.IsBot) { await RespondAsync("That user is a Bot and does not have a level.", ephemeral: true); }
+            if (user == null) { user = Context.User; }
 
             await DeferAsync();
 
             var collection = mongoClient.GetDatabase("LevelDatabase").GetCollection<BsonDocument>("LevelCollection");
             var filter = Builders<BsonDocument>.Filter.Eq("UserId", user.Id);
-            var userLevel = BsonSerializer.Deserialize<UserLevel>(collection.Find<BsonDocument>(filter).First());
+            var userLevelData = collection.Find<BsonDocument>(filter).FirstOrDefault();
+            UserLevel userLevel;
+
+            if(userLevelData == null)
+            {
+                userLevel = new UserLevel(user.Id, 0);
+            }
+            else
+            {
+                userLevel = BsonSerializer.Deserialize<UserLevel>(userLevelData);
+            }
+            
 
             Embed embed = new EmbedBuilder()
                 .WithAuthor(new EmbedAuthorBuilder().WithName(user.Username))
@@ -50,7 +59,7 @@ namespace LevelSystemDiscordBot.Modules
             await DeferAsync();
 
             var collection = mongoClient.GetDatabase("LevelDatabase").GetCollection<BsonDocument>("LevelCollection");
-            var sortLevel = Builders<BsonDocument>.Sort.Descending("Level");
+            var sortLevel = Builders<BsonDocument>.Sort.Descending("TotalExp");
             List<UserLevel> userLevels = collection.Find<BsonDocument>(new BsonDocument()).Sort(sortLevel).ToList().Select(_userLevel => BsonSerializer.Deserialize<UserLevel>(_userLevel)).ToList();
             string usersEmbedContent = "";
             string levelsEmbedContent = "";
@@ -64,6 +73,18 @@ namespace LevelSystemDiscordBot.Modules
 
                 index++;
             }
+
+            if(userLevels.Count <= 0)
+            {
+                Embed _embed = new EmbedBuilder()
+                .WithAuthor("Levels Leaderboard").WithDescription($"Leaderboard is empty.")
+                .WithCurrentTimestamp()
+                .Build();
+
+                await FollowupAsync(embed: _embed);
+                return;
+            }
+
 
             Embed embed = new EmbedBuilder()
                 .WithAuthor("Levels Leaderboard").WithDescription($"Top {userLevels.Count()} highest leveled users.")

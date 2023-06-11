@@ -16,6 +16,7 @@ namespace LevelSystemDiscordBot
         public int Exp { get; set; } = 0;
         public int TotalExp { get; set; } = 0;
         public int MaxExp { get; set; } = 10;
+        public bool HasDefaultProperties { get; set; } = true;
 
         public UserLevel(ulong userId, int level)
         {

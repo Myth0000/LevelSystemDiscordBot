@@ -48,9 +48,9 @@ namespace LevelSystemDiscordBot
                 await interactions.RegisterCommandsToGuildAsync(1113079064228536372);
             };
 
-            client.MessageReceived += LevelSystem.MessageReceived;
+            client.MessageReceived += async (SocketMessage message) => LevelSystem.MessageReceived(message);
 
-            await client.LoginAsync(TokenType.Bot, "MTExMzkyNzU1NjY1MjA4MTIyMg.GtE3ZF.f67-pnn6ZFBMKI5nKFaDPU6SQ69vPRxCcBe9bg");
+            await client.LoginAsync(TokenType.Bot, File.ReadAllText("TOKEN.txt"));
             await client.StartAsync();
             await Task.Delay(-1);
 
