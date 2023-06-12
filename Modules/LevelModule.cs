@@ -61,16 +61,19 @@ namespace LevelSystemDiscordBot.Modules
             var collection = mongoClient.GetDatabase("LevelDatabase").GetCollection<BsonDocument>("LevelCollection");
             var sortLevel = Builders<BsonDocument>.Sort.Descending("TotalExp");
             List<UserLevel> userLevels = collection.Find<BsonDocument>(new BsonDocument()).Sort(sortLevel).ToList().Select(_userLevel => BsonSerializer.Deserialize<UserLevel>(_userLevel)).ToList();
-            string usersEmbedContent = "";
-            string levelsEmbedContent = "";
+            string usersEmbedContent = "```";
 
             int index = 1;
             foreach(var userLevel in userLevels)
             {
                 SocketGuildUser user = Context.Guild.GetUser(userLevel.UserId);
-                usersEmbedContent += $"{index}. {user.Username}\n";
-                levelsEmbedContent += $"**{userLevel.Level}**\n";
+                string userLevelText = $"{index}. {user.Username}";
 
+                // keeps adding space until there are 35 characters in the text
+                for(int textLength = userLevelText.Length ; textLength < 22; textLength++) { userLevelText += " "; }
+                userLevelText += $" {userLevel.Level}\n";
+
+                usersEmbedContent += userLevelText;
                 index++;
             }
 
@@ -85,11 +88,10 @@ namespace LevelSystemDiscordBot.Modules
                 return;
             }
 
-
             Embed embed = new EmbedBuilder()
                 .WithAuthor("Levels Leaderboard").WithDescription($"Top {userLevels.Count()} highest leveled users.")
-                .AddField(new EmbedFieldBuilder().WithName("**User**").WithValue(usersEmbedContent).WithIsInline(true))
-                .AddField(new EmbedFieldBuilder().WithName("**Level**").WithValue(levelsEmbedContent).WithIsInline(true))
+                .AddField(new EmbedFieldBuilder().WithName("**User                                                  Level**")
+                .WithValue(usersEmbedContent + "```")) // 32 spaces + 4 + 5 = 41 chars
                 .WithCurrentTimestamp()
                 .Build();
 

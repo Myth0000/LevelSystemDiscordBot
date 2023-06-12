@@ -11,6 +11,7 @@ using Discord;
 using System.Threading.Channels;
 using System.Runtime.InteropServices;
 using Discord.Interactions;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace LevelSystemDiscordBot
 {
@@ -123,5 +124,31 @@ namespace LevelSystemDiscordBot
             }
         }
 
+    }
+
+
+
+
+
+    [BsonIgnoreExtraElements]
+    public class UserLevel
+    {
+        public ulong UserId { get; set; }
+        public int Level { get; set; } = 0;
+        public int Exp { get; set; } = 0;
+        public int TotalExp { get; set; } = 0;
+        public int MaxExp { get; set; } = 10;
+        public bool HasDefaultProperties { get; set; } = true;
+
+        public UserLevel(ulong userId, int level)
+        {
+            UserId = userId;
+            Level = level;
+        }
+
+        public void Update()
+        {
+
+        }
     }
 }
